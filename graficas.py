@@ -43,7 +43,7 @@ class Local:
         Simula la operación del local durante un día.
         """
         self.tiempo_inicio_operacion = 0  # Tiempo de apertura (8:00 AM)
-        self.tiempo_fin_operacion = 36000  # Tiempo de cierre (12:00 PM) en segundos
+        self.tiempo_fin_operacion = 14400  # Tiempo de cierre (12:00 AM) en segundos
 
         tiempo_actual = self.tiempo_inicio_operacion
         tiempos_llegada = []
@@ -57,7 +57,6 @@ class Local:
                 cliente = Cliente(tiempo_actual)
                 self.cola.append(cliente)
                 tiempos_llegada.append(tiempo_actual)
-                print(f"Cliente llega al local a las {tiempo_actual/3600:.2f} horas")
 
             # 2. Atender a los clientes en la cola
             for box in self.boxes:
@@ -82,7 +81,6 @@ class Local:
                         tiempos_espera.append(box.cliente_actual.tiempo_espera)
                         tiempos_salida.append(box.cliente_actual.tiempo_salida)
                         self.clientes_atendidos += 1
-                        print(f"Cliente sale del local a las {tiempo_actual/3600:.2f} horas")
 
                         # Actualizar tiempos min y max de atención
                         self.tiempo_min_atencion = min(self.tiempo_min_atencion, box.cliente_actual.tiempo_atencion)
@@ -96,14 +94,12 @@ class Local:
                         # Cliente que estaba siendo atendido abandona el local
                         box.ocupado = False
                         self.clientes_abandonados += 1  # Incrementa el contador de clientes abandonados
-                        print(f"Cliente que estaba siendo atendido abandona el local a las {tiempo_actual/3600:.2f} horas")
 
             # 4. Eliminar clientes que abandonan la cola
             for i in range(len(self.cola) - 1, -1, -1):
                 if self.cola[i].tiempo_llegada + 1800 < tiempo_actual:  # 30 minutos en segundos
                     self.cola.pop(i)
                     self.clientes_abandonados += 1
-                    print(f"Cliente abandona el local a las {tiempo_actual/3600:.2f} horas")
 
             tiempo_actual += 1
 
@@ -124,10 +120,8 @@ class Local:
         return costo_total
 
     def imprimir_resultados(self):
-        """
-        Imprime los resultados de la simulación.
-        """
         print(f"\nResultados de la simulación:")
+        print(f"Boxes de atención: {self.cantidad_boxes}")
         print(f"Clientes ingresados: {self.clientes_atendidos + self.clientes_abandonados}")
         print(f"Clientes atendidos: {self.clientes_atendidos}")
         print(f"Clientes abandonados: {self.clientes_abandonados}")
