@@ -47,13 +47,13 @@ class Local:
         Simula la operación del local durante un día.
         """
         self.tiempo_inicio_operacion = 0  # Tiempo de apertura (8:00 AM)
-        self.tiempo_fin_operacion = 14400  # Tiempo de cierre (12:00 AM) en segundos
+        self.tiempo_fin_operacion = 14400  # Tiempo de cierre (12:00 PM) en segundos
 
         tiempo_actual = self.tiempo_inicio_operacion
 
         while tiempo_actual < self.tiempo_fin_operacion:
             # 1. Verificar si un cliente ingresa
-            if random.random() < 1/144:
+            if random.random() < 1/120:
                 cliente = Cliente(tiempo_actual)
                 self.cola.append(cliente)
 
@@ -90,19 +90,21 @@ class Local:
                         box.ocupado = False
                         self.clientes_abandonados += 1  # Incrementa el contador de clientes abandonados
 
-            # 4. Eliminar clientes que abandonan la cola
-            for i in range(len(self.cola) - 1, -1, -1):
-                if self.cola[i].tiempo_llegada + 1800 < tiempo_actual:  # 30 minutos en segundos
-                    self.cola.pop(i)
-                    self.clientes_abandonados += 1
+                else:
+                    # Cliente en espera que abandona la cola
+                    if self.cola:
+                        cliente_en_espera = self.cola[0]
+                        if cliente_en_espera.tiempo_llegada + 1800 < tiempo_actual:  # 30 minutos en segundos
+                            self.cola.pop(0)
+                            self.clientes_abandonados += 1
 
-            # 5. Animar con pygame (actualización más rápida)
+            # 4. Animar con pygame (actualización más rápida)
             if tiempo_actual % 100 == 0:  # Actualizar cada 100 unidades de tiempo
                 self.actualizar_pantalla(tiempo_actual)
 
             tiempo_actual += 1  # Incrementar el tiempo para avanzar la simulación
 
-        # 6. Al finalizar la simulación, agregar los clientes que quedaron en la cola a los abandonados
+        # 5. Al finalizar la simulación, agregar los clientes que quedaron en la cola a los abandonados
         self.clientes_abandonados += len(self.cola)
 
     def calcular_costo(self):
@@ -147,48 +149,75 @@ class Local:
                 pygame.draw.circle(screen, (0, 0, 255), (x_cola, y_cola + i * (radio_circulo * 2 + 10)), radio_circulo)  # Circulo azul para cada cliente en la cola
 
             # Mostrar textos
-
-            # Pasa los segundos a minutos y segundos solo si es mayor a 60 segundos. Los segundos se muestran como enteros
-            if self.tiempo_min_atencion >= 60:
-                text_min_atencion = f"{self.tiempo_min_atencion // 60} minutos y {self.tiempo_min_atencion % 60:.0f} segundos"
-            else: 
-                text_min_atencion = f"{self.tiempo_min_atencion:.0f} segundos"
-            
-            if self.tiempo_max_atencion >= 60:
-                text_max_atencion = f"{self.tiempo_max_atencion // 60} minutos y {self.tiempo_max_atencion % 60:.0f} segundos"
-            else:
-                text_max_atencion = f"{self.tiempo_max_atencion:.0f} segundos"
-            
-            if self.tiempo_min_espera >= 60:
-                text_min_espera = f"{self.tiempo_min_espera // 60} minutos y {self.tiempo_min_espera % 60:.0f} segundos"
-            else:
-                text_min_espera = f"{self.tiempo_min_espera:.0f} segundos"
-            
-            if self.tiempo_max_espera >= 60:
-                text_max_espera = f"{self.tiempo_max_espera // 60} minutos y {self.tiempo_max_espera % 60:.0f} segundos"
-            else:
-                text_max_espera = f"{self.tiempo_max_espera:.0f} segundos"
-
-            font = pygame.font.SysFont(None, 23)
-            textos = [
-                f"Cantidad de clientes Ingresados: {self.clientes_atendidos + self.clientes_abandonados}",
-                f"Cantidad de clientes Atendidos: {self.clientes_atendidos}",
-                f"Cantidad de clientes Perdidos: {self.clientes_abandonados}",
-                f"Tiempo máximo de atención: {text_max_atencion}",
-                f"Tiempo mínimo de atención: {text_min_atencion}",
-                f"Tiempo máximo de espera: {text_max_espera}",
-                f"Tiempo mínimo de espera: {text_min_espera}",
-                f"Costo de tener abiertos los boxes: {self.cantidad_boxes * 1000}",
-                f"Costo de los clientes perdidos: {self.clientes_abandonados * 10000}",
-                f"Costo operacional total: {self.calcular_costo()}"
-            ]
-
-            for i, texto in enumerate(textos):
-                img = font.render(texto, True, (0, 0, 0))
-                screen.blit(img, (50, 150 + i * 30))  # Mostrar textos a la izquierda de la pantalla
+            self.mostrar_textos(tiempo_actual)
 
             pygame.display.flip()
             clock.tick(self.fps)  # Incrementar el framerate para hacer la simulación aún más rápida
+
+    def mostrar_textos(self, tiempo_actual):
+        """
+        Muestra los textos con los datos de la simulación en la pantalla.
+        """
+        # Pasa los segundos a minutos y segundos solo si es mayor a 60 segundos. Los segundos se muestran como enteros
+        if self.tiempo_min_atencion >= 60:
+            text_min_atencion = f"{self.tiempo_min_atencion // 60} minutos y {self.tiempo_min_atencion % 60:.0f} segundos"
+        else:
+            text_min_atencion = f"{self.tiempo_min_atencion:.0f} segundos"
+        
+        if self.tiempo_max_atencion >= 60:
+            text_max_atencion = f"{self.tiempo_max_atencion // 60} minutos y {self.tiempo_max_atencion % 60:.0f} segundos"
+        else:
+            text_max_atencion = f"{self.tiempo_max_atencion:.0f} segundos"
+        
+        if self.tiempo_min_espera >= 60:
+            text_min_espera = f"{self.tiempo_min_espera // 60} minutos y {self.tiempo_min_espera % 60:.0f} segundos"
+        else:
+            text_min_espera = f"{self.tiempo_min_espera:.0f} segundos"
+        
+        if self.tiempo_max_espera >= 60:
+            text_max_espera = f"{self.tiempo_max_espera // 60} minutos y {self.tiempo_max_espera % 60:.0f} segundos"
+        else:
+            text_max_espera = f"{self.tiempo_max_espera:.0f} segundos"
+
+        
+        # Hora actual en formato HH:MM arrancando desde las 8:00 AM
+        hora_actual = f"{tiempo_actual // 3600 + 8:02.0f}:{(tiempo_actual % 3600) // 60 + 1:02.0f}"
+
+
+        font = pygame.font.SysFont(None, 23)
+        textos = [
+            f"Hora: {hora_actual}",
+            f"Cantidad de clientes Ingresados: {self.clientes_atendidos + self.clientes_abandonados}",
+            f"Cantidad de clientes Atendidos: {self.clientes_atendidos}",
+            f"Cantidad de clientes Perdidos: {self.clientes_abandonados}",
+            f"Tiempo máximo de atención: {text_max_atencion}",
+            f"Tiempo mínimo de atención: {text_min_atencion}",
+            f"Tiempo máximo de espera: {text_max_espera}",
+            f"Tiempo mínimo de espera: {text_min_espera}",
+            f"Costo de tener abiertos los boxes: {self.cantidad_boxes * 1000}",
+            f"Costo de los clientes perdidos: {self.clientes_abandonados * 10000}",
+            f"Costo operacional total: {self.calcular_costo()}"
+        ]
+
+        for i, texto in enumerate(textos):
+            img = font.render(texto, True, (0, 0, 0))
+            screen.blit(img, (50, 150 + i * 30))  # Mostrar textos a la izquierda de la pantalla
+
+    def generar_tiempos_llegada(self):
+        """
+        Genera tiempos de llegada de clientes basados en una distribución normal.
+        """
+        media = 10 * 3600  # 10 AM en segundos desde las 8 AM
+        desvio = 2 * 3600  # 2 horas en segundos
+        tiempo_inicio = 8 * 3600  # 8 AM en segundos
+        tiempo_fin = 12 * 3600  # 12 PM en segundos
+
+        while True:
+            tiempo_llegada = np.random.normal(loc=media, scale=desvio)
+            # Asegurarse de que el tiempo de llegada esté dentro de los límites
+            while tiempo_llegada < tiempo_inicio or tiempo_llegada > tiempo_fin:
+                tiempo_llegada = np.random.normal(loc=media, scale=desvio)
+            yield tiempo_llegada
 
 if __name__ == "__main__":
     # Inicializar pygame
@@ -197,10 +226,10 @@ if __name__ == "__main__":
     pygame.display.set_caption("Simulación de Boxes de Atención")
     clock = pygame.time.Clock()
 
-    # Cantidad_boxes entre 1 y 10 y los fps entre 5 y 200. Si no ingresa uno valido le vuelve a pedir
+    # Cantidad_boxes entre 1 y 10 y los fps entre 5, 15 y 30. Si no ingresa uno valido le vuelve a pedir
     
     cantidad_boxes = int(input("\nIngrese la cantidad de boxes (entre 1 y 10): "))
-    fps = int(input("\nIngrese una velocidad (1: 5 fps, 2: 15 fps, 3: 200 fps): "))
+    fps = int(input("\nIngrese una velocidad (1: 5 fps, 2: 15 fps, 3: 30 fps): "))
     
     while cantidad_boxes < 1 or cantidad_boxes > 10:
         print("\n\nPor favor ingrese una cantidad de box válida\n\n")
@@ -208,24 +237,23 @@ if __name__ == "__main__":
     
     while fps != 1 and fps != 2 and fps != 3:
         print("\n\nPor favor ingrese una velocidad válida\n\n")
-        fps = int(input("Ingrese una velocidad (1: 5 fps, 2: 15 fps, 3: 200 fps): "))
+        fps = int(input("Ingrese una velocidad (1: 5 fps, 2: 15 fps, 3: 30 fps): "))
     
     if fps == 1:
         fps = 5
     elif fps == 2:
         fps = 15
     elif fps == 3:
-        fps = 200
+        fps = 30
     
     local = Local(cantidad_boxes, fps)
 
-# --- Buscar un nombre de archivo disponible ---
+    # --- Buscar un nombre de archivo disponible ---
     nombre_archivo = "animacion.avi"
     contador = 2
     while os.path.exists(nombre_archivo):
         nombre_archivo = f"animacion{contador}.avi"
         contador += 1
-
 
     # --- Configuración de la exportación de video ---
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
