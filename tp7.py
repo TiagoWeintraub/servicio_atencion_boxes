@@ -224,12 +224,11 @@ if __name__ == "__main__":
     local = Local(cantidad_boxes, fps)
 
 # --- Buscar un nombre de archivo disponible ---
-    nombre_archivo = "animacion.avi"
+    nombre_archivo = "animacion_tp7.avi"
     contador = 2
     while os.path.exists(nombre_archivo):
-        nombre_archivo = f"animacion{contador}.avi"
+        nombre_archivo = f"animacion{contador}_tp7.avi"
         contador += 1
-
 
     # --- Configuración de la exportación de video ---
     fourcc = cv2.VideoWriter_fourcc(*'XVID')

@@ -1,6 +1,7 @@
 import random
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as stats
 
 class Cliente:
     """
@@ -29,6 +30,7 @@ class Local:
         self.cantidad_boxes = cantidad_boxes
         self.boxes = [Box() for _ in range(cantidad_boxes)]
         self.cola = []
+        self.cola_llegada = []
         self.clientes_atendidos = 0
         self.clientes_abandonados = 0
         self.tiempo_inicio_operacion = None
@@ -37,26 +39,61 @@ class Local:
         self.tiempo_max_atencion = 0
         self.tiempo_min_espera = float('inf')
         self.tiempo_max_espera = 0
+    
+    def probabilidad_llegada(self, tiempo_actual):
+        prob = stats.norm.pdf(tiempo_actual, loc=36000, scale=7200)
+        return prob
 
     def simular(self):
         """
         Simula la operación del local durante un día.
         """
-        self.tiempo_inicio_operacion = 0  # Tiempo de apertura (8:00 AM)
-        self.tiempo_fin_operacion = 14400  # Tiempo de cierre (12:00 AM) en segundos
+        self.tiempo_inicio_operacion = 8 * 3600  # Tiempo de apertura (8:00 AM) en segundos
+        self.tiempo_fin_operacion = 12 * 3600  # Tiempo de cierre (12:00 PM) en segundos
 
         tiempo_actual = self.tiempo_inicio_operacion
+        cliente_llega = []
         tiempos_llegada = []
         tiempos_atencion = []
         tiempos_espera = []
         tiempos_salida = []
 
+        # Calcula la probabilidad de que un cliente llegue en un momento dado, teniendo en cuenta la distribución normal (Mientras mas cerca de las 10 am mas probabilidad de que llegue un cliente)
+        probabilidad_llegada = self.probabilidad_llegada(tiempo_actual)
+
+        # Ahora lo utiliza en el while
         while tiempo_actual < self.tiempo_fin_operacion:
-            # 1. Verificar si un cliente ingresa
-            if random.random() < 1/144:
+            
+            # Utiliza la probabilidad de llegada para determinar si un cliente llega
+            if random.random() < probabilidad_llegada:
                 cliente = Cliente(tiempo_actual)
-                self.cola.append(cliente)
-                tiempos_llegada.append(tiempo_actual)
+                self.cola_llegada.append(cliente)
+                cliente_llega.append(tiempo_actual)
+
+            if 9 * 3600 < tiempo_actual < 9.5 * 3600 or 10.5 * 3600 < tiempo_actual < 11 * 3600:
+                if random.random() < 1/130:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    tiempos_llegada.append(tiempo_actual)   
+
+            elif 9.5 * 3600 < tiempo_actual < 10.5 * 3600:
+                if random.random() < 1/70:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    tiempos_llegada.append(tiempo_actual)
+            
+            elif 8.5 * 3600 < tiempo_actual < 9 * 3600 or 11 * 3600 < tiempo_actual < 11.5 * 3600: 
+                if random.random() < 1/210:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    tiempos_llegada.append(tiempo_actual)
+            
+            elif 8 * 3600 < tiempo_actual < 8.5 * 3600 or 11.5 * 3600 < tiempo_actual < 12 * 3600:
+                if random.random() < 1/250:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    tiempos_llegada.append(tiempo_actual)
+            
 
             # 2. Atender a los clientes en la cola
             for box in self.boxes:
@@ -134,9 +171,6 @@ class Local:
         print(f"Costo de la operación: ${self.calcular_costo()}")
 
     def graficar_resultados(self, tiempos_llegada, tiempos_atencion, tiempos_espera, tiempos_salida):
-        """
-        Grafica los resultados de la simulación.
-        """
         plt.figure(figsize=(12, 8))  # Ajusta el tamaño para tres gráficos
 
         # Histograma de clientes
@@ -153,37 +187,21 @@ class Local:
         for i, v in enumerate(cantidades):
             plt.text(i, v + 0.5, str(v), ha='center', va='bottom')
 
-        # Histograma de tiempos de atención
+        # Histograma de clientes por hora
         plt.subplot(2, 2, 2)  # Crea la primera fila de subplots (derecha)
-        bins = np.arange(0, max(tiempos_atencion) + 60, 60)
-        plt.hist(tiempos_atencion, bins=bins, edgecolor='black', label="Tiempos de Atención")
+        tiempos_llegada_horas = [(t / 3600) - 8 for t in tiempos_llegada]  # Convierte los tiempos a horas desde las 8 AM
+        plt.hist(tiempos_llegada_horas, bins=np.arange(0, 5, 0.5), edgecolor='black', color='blue')        
+        plt.xlabel("Hora del día")
         plt.ylabel("Cantidad de Clientes")
-        plt.title("Tiempos de Atención")
-        plt.xlim(0, max(tiempos_atencion))
+        plt.title("Clientes Ingresados por Hora")
+        plt.xticks(np.arange(0, 4.5, 0.5), labels=[
+        '8', '8:30', '9', '9:30', '10', '10:30',
+        '11', '11:30', '12'  # Elimina la etiqueta '12:30 PM'
+        ])
 
-        # Histograma de tiempos de espera
-        plt.subplot(2, 2, 3)  # Crea la segunda fila de subplots (abajo)
-        bins = np.arange(0, max(tiempos_espera) + 60, 60)
-        plt.hist(tiempos_espera, bins=bins, edgecolor='black', label="Tiempos de Espera")
-        plt.xlabel("Tiempo (segundos)")
-        plt.ylabel("Cantidad de Clientes")
-        plt.title("Tiempos de Espera")
-        plt.xlim(0, max(tiempos_espera))
+        # Puedes agregar más subplots o gráficos aquí según tus necesidades
         
-        # Costos operacionales, muestra el costo de los box, el costo por cliente perdido y el costo total
-        plt.subplot(2, 2, 4)
-        categorias = ['Costo Total', 'Costo Boxes', 'Costo Clientes Perdidos']
-        cantidades = [
-            self.calcular_costo(),
-            self.cantidad_boxes * 1000,
-            self.clientes_abandonados * 10000
-        ]
-        plt.bar(categorias, cantidades, color=['skyblue', 'green', 'red'])
-        plt.ylabel("Cantidad de Plata")
-        plt.title("Costos Operacionales")
-        
-
-        plt.tight_layout()
+        plt.tight_layout()  # Ajusta el layout para evitar solapamiento
         plt.show()
 
 if __name__ == "__main__":

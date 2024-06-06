@@ -47,23 +47,56 @@ class Local:
         """
         Simula la operación del local durante un día.
         """
-        self.tiempo_inicio_operacion = 0  # Tiempo de apertura (8:00 AM)
-        self.tiempo_fin_operacion = 14400  # Tiempo de cierre (12:00 PM) en segundos
+        self.tiempo_inicio_operacion = 8 * 3600  # Tiempo de apertura (8:00 AM) en segundos
+        self.tiempo_fin_operacion = 12 * 3600  # Tiempo de cierre (12:00 PM) en segundos
 
         tiempo_actual = self.tiempo_inicio_operacion
 
         while tiempo_actual < self.tiempo_fin_operacion:
             # 1. Verificar si un cliente ingresa
-            if random.random() < 1/144:
-                cliente = Cliente(tiempo_actual)
-                self.cola.append(cliente)
+            # if random.random() < 1/144:
+            #     cliente = Cliente(tiempo_actual)
+            #     self.cola.append(cliente)
+        
+            if 8 * 3600 <= tiempo_actual < 8.5 * 3600 or 11.5 * 3600 <= tiempo_actual < 12 * 3600:
+                if random.random() < 1/250:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    hora_llegada = tiempo_actual // 3600
+                    if hora_llegada in self.clientes_por_hora:
+                        self.clientes_por_hora[hora_llegada] += 1
+                    else:
+                        self.clientes_por_hora[hora_llegada] = 1
+            
+            elif 8.5 * 3600 <= tiempo_actual < 9 * 3600 or 11 * 3600 <= tiempo_actual < 11.5 * 3600:
+                if random.random() < 1/210:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    hora_llegada = tiempo_actual // 3600
+                    if hora_llegada in self.clientes_por_hora:
+                        self.clientes_por_hora[hora_llegada] += 1
+                    else:
+                        self.clientes_por_hora[hora_llegada] = 1
 
-                # Registrar la hora de llegada del cliente para el análisis de hora pico
-                hora_llegada = tiempo_actual // 3600
-                if hora_llegada in self.clientes_por_hora:
-                    self.clientes_por_hora[hora_llegada] += 1
-                else:
-                    self.clientes_por_hora[hora_llegada] = 1
+            elif 9 * 3600 <= tiempo_actual < 9.5 * 3600 or 10.5 * 3600 <= tiempo_actual < 11 * 3600:
+                if random.random() < 1/130:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    hora_llegada = tiempo_actual // 3600
+                    if hora_llegada in self.clientes_por_hora:
+                        self.clientes_por_hora[hora_llegada] += 1
+                    else:
+                        self.clientes_por_hora[hora_llegada] = 1
+
+            elif 9.5 * 3600 <= tiempo_actual < 10.5 * 3600:
+                if random.random() < 1/70:
+                    cliente = Cliente(tiempo_actual)
+                    self.cola.append(cliente)
+                    hora_llegada = tiempo_actual // 3600
+                    if hora_llegada in self.clientes_por_hora:
+                        self.clientes_por_hora[hora_llegada] += 1
+                    else:
+                        self.clientes_por_hora[hora_llegada] = 1
 
             # 2. Atender a los clientes en la cola
             for box in self.boxes:
@@ -189,15 +222,8 @@ class Local:
                 text_min_espera = f"{self.tiempo_min_espera:.0f} segundos"
 
         # Hora actual en formato HH:MM desde las 8:00 AM
-        hora_actual = f"{tiempo_actual // 3600 + 8:02.0f}:{(tiempo_actual % 3600) // 60:02.0f}"
+        hora_actual = f"{tiempo_actual // 3600:02.0f}:{(tiempo_actual % 3600) // 60:02.0f}"
 
-        # Encontrar la hora con más clientes
-        if self.clientes_por_hora:
-            hora_pico = max(self.clientes_por_hora, key=self.clientes_por_hora.get)
-            cantidad_clientes_pico = self.clientes_por_hora[hora_pico]
-        else:
-            hora_pico = None
-            cantidad_clientes_pico = 0
 
         # Mostrar textos en la pantalla
         font = pygame.font.SysFont(None, 23)
@@ -214,9 +240,6 @@ class Local:
             f"Costo de los clientes perdidos: {self.clientes_abandonados * 10000}",
             f"Costo operacional total: {self.calcular_costo()}"
         ]
-
-        if hora_pico is not None:
-            textos.append(f"La hora pico de clientes fue a las {hora_pico+8}:00 con {cantidad_clientes_pico} clientes")
 
         # Mostrar cada texto en la pantalla
         for i, texto in enumerate(textos):
@@ -255,10 +278,10 @@ if __name__ == "__main__":
     local = Local(cantidad_boxes, fps)
 
     # --- Buscar un nombre de archivo disponible ---
-    nombre_archivo = "animacion.avi"
+    nombre_archivo = "animacion_tp8.avi"
     contador = 2
     while os.path.exists(nombre_archivo):
-        nombre_archivo = f"animacion{contador}.avi"
+        nombre_archivo = f"animacion{contador}_tp8.avi"
         contador += 1
 
     # --- Configuración de la exportación de video ---
