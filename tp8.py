@@ -160,25 +160,35 @@ class Local:
         """
         Muestra los textos en la pantalla con los datos de la simulación.
         """
-        # Calcular tiempos de espera y atención en formato legible
-        if self.tiempo_min_atencion >= 60:
-            text_min_atencion = f"{self.tiempo_min_atencion // 60} minutos y {self.tiempo_min_atencion % 60:.0f} segundos"
-        else:
-            text_min_atencion = f"{self.tiempo_min_atencion:.0f} segundos"
-        
-        if self.tiempo_max_atencion >= 60:
-            text_max_atencion = f"{self.tiempo_max_atencion // 60} minutos y {self.tiempo_max_atencion % 60:.0f} segundos"
-        else:
-            text_max_atencion = f"{self.tiempo_max_atencion:.0f} segundos"
-        
-        if self.tiempo_max_espera >= 60:
-            text_max_espera = f"{self.tiempo_max_espera // 60} minutos y {self.tiempo_max_espera % 60:.0f} segundos"
-        else:
-            text_max_espera = f"{self.tiempo_max_espera:.0f} segundos"
-        
-        if self.tiempo_min_espera >= 60:
-            text_min_espera = f"{self.tiempo_min_espera // 60} minutos y {self.tiempo_min_espera % 60:.0f} segundos"
-                    # Hora actual en formato HH:MM desde las 8:00 AM
+        # Inicializar variables para evitar UnboundLocalError
+        text_min_atencion = ""
+        text_max_atencion = ""
+        text_min_espera = ""
+        text_max_espera = ""
+
+        # Calcular tiempos de espera y atención en formato legible si existen datos
+        if self.clientes_atendidos > 0:
+            if self.tiempo_min_atencion >= 60:
+                text_min_atencion = f"{self.tiempo_min_atencion // 60} minutos y {self.tiempo_min_atencion % 60:.0f} segundos"
+            else:
+                text_min_atencion = f"{self.tiempo_min_atencion:.0f} segundos"
+            
+            if self.tiempo_max_atencion >= 60:
+                text_max_atencion = f"{self.tiempo_max_atencion // 60} minutos y {self.tiempo_max_atencion % 60:.0f} segundos"
+            else:
+                text_max_atencion = f"{self.tiempo_max_atencion:.0f} segundos"
+            
+            if self.tiempo_max_espera >= 60:
+                text_max_espera = f"{self.tiempo_max_espera // 60} minutos y {self.tiempo_max_espera % 60:.0f} segundos"
+            else:
+                text_max_espera = f"{self.tiempo_max_espera:.0f} segundos"
+            
+            if self.tiempo_min_espera >= 60:
+                text_min_espera = f"{self.tiempo_min_espera // 60} minutos y {self.tiempo_min_espera % 60:.0f} segundos"
+            else:
+                text_min_espera = f"{self.tiempo_min_espera:.0f} segundos"
+
+        # Hora actual en formato HH:MM desde las 8:00 AM
         hora_actual = f"{tiempo_actual // 3600 + 8:02.0f}:{(tiempo_actual % 3600) // 60:02.0f}"
 
         # Encontrar la hora con más clientes
@@ -212,6 +222,7 @@ class Local:
         for i, texto in enumerate(textos):
             img = font.render(texto, True, (0, 0, 0))
             screen.blit(img, (50, 150 + i * 30))  # Mostrar textos a la izquierda de la pantalla
+
 
     
 
