@@ -34,6 +34,7 @@ class Local:
         self.fps = fps
         self.cola = []
         self.clientes_atendidos = 0
+        self.cola_clientes = []
         self.clientes_abandonados = 0
         self.tiempo_inicio_operacion = None
         self.tiempo_fin_operacion = None
@@ -53,10 +54,9 @@ class Local:
         tiempo_actual = self.tiempo_inicio_operacion
 
         while tiempo_actual < self.tiempo_fin_operacion:
-            # 1. Verificar si un cliente ingresa
-            # if random.random() < 1/144:
-            #     cliente = Cliente(tiempo_actual)
-            #     self.cola.append(cliente)
+            if random.random() < 1/144:
+                cliente = Cliente(tiempo_actual)
+                self.cola_clientes.append(cliente)
         
             if 8 * 3600 <= tiempo_actual < 8.5 * 3600 or 11.5 * 3600 <= tiempo_actual < 12 * 3600:
                 if random.random() < 1/250:
@@ -252,7 +252,7 @@ class Local:
 if __name__ == "__main__":
     # Inicializar pygame
     pygame.init()
-    screen = pygame.display.set_mode((1200, 600))
+    screen = pygame.display.set_mode((1200, 800))
     pygame.display.set_caption("Simulación de Boxes de Atención")
     clock = pygame.time.Clock()
 
